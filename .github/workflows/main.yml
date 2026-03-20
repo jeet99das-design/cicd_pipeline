@@ -26,7 +26,10 @@ jobs:
       run: terraform init
 
     - name: Terraform Plan
-      run: terraform plan -out=tfplan -input=false
+      run: terraform plan -out=tfplan -input=false || exit 1
+
+    - name: Debug Plan Output
+      run: terraform plan
 
     - name: Convert Plan to JSON
       run: terraform show -json tfplan > tfplan.json
