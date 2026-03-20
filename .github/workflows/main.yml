@@ -26,10 +26,16 @@ jobs:
       run: terraform init
 
     - name: Terraform Plan
-      run: terraform plan -out=tfplan
+      run: terraform plan -out=tfplan -input=false
 
     - name: Convert Plan to JSON
       run: terraform show -json tfplan > tfplan.json
+
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install -y jq
+
+    - name: Validate JSON
+      run: cat tfplan.json | jq .
 
     - name: Install Conftest
       run: |
