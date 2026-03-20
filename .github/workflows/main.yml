@@ -33,8 +33,15 @@ jobs:
     - name: Policy Check
       run: conftest test tfplan.json -p policy/
 
-    - name: Terraform Apply
+    - name: Terraform Aipply
       run: terraform apply -auto-approve tfplan
 
     - name: Drift Detection
       run: bash drift.sh
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-north-1
