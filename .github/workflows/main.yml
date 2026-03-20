@@ -1,40 +1,47 @@
-terraform:
-  runs-on: ubuntu-latest
+name: Terraform CI/CD
 
-  steps:
-  - name: Checkout
-    uses: actions/checkout@v3
+on:
+  push:
+    branches: [ "main" ]
 
-  - name: Configure AWS Credentials
-    uses: aws-actions/configure-aws-credentials@v2
-    with:
-      aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      aws-region: eu-north-1
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
 
-  - name: Setup Terraform
-    uses: hashicorp/setup-terraform@v2
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
 
-  - name: Terraform Init
-    run: terraform init
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-north-1
 
-  - name: Terraform Plan
-    run: terraform plan -out=tfplan
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
 
-  - name: Convert Plan to JSON
-    run: terraform show -json tfplan > tfplan.json
+    - name: Terraform Init
+      run: terraform init
 
-  - name: Install Conftest
-    run: |
-      wget https://github.com/open-policy-agent/conftest/releases/download/v0.45.0/conftest_0.45.0_Linux_x86_64.tar.gz
-      tar -xzf conftest_*.tar.gz
-      sudo mv conftest /usr/local/bin/
+    - name: Terraform Plan
+      run: terraform plan -out=tfplan
 
-  - name: Policy Check
-    run: conftest test tfplan.json -p policy/
+    - name: Convert Plan to JSON
+      run: terraform show -json tfplan > tfplan.json
 
-  - name: Terraform Apply
-    run: terraform apply -auto-approve tfplan
+    - name: Install Conftest
+      run: |
+        wget https://github.com/open-policy-agent/conftest/releases/download/v0.45.0/conftest_0.45.0_Linux_x86_64.tar.gz
+        tar -xzf conftest_*.tar.gz
+        sudo mv conftest /usr/local/bin/
 
-  - name: Drift Detection
-    run: bash drift.sh
+    - name: Policy Check
+      run: conftest test tfplan.json -p policy/
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve tfplan
+
+    - name: Drift Detection
+      run: bash drift.sh
